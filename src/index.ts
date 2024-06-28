@@ -5,17 +5,19 @@ import process from "process";
 import { createUnplugin, type UnpluginFactory } from "unplugin";
 import { buildParserFile } from "@lezer/generator";
 
+const moduleIdPattern = /^\0?(.*\.grammar)(\.terms)?$/;
+
 export const unpluginFactory: UnpluginFactory<undefined> = () => ({
   name: "unplugin-lezer",
   resolveId(source, importer) {
-    const m = /^(.*\.grammar)(\.terms)?$/.exec(source);
+    const m = moduleIdPattern.exec(source);
     if (!m) return null;
     const id = resolve(importer ? dirname(importer) : process.cwd(), m[1]);
     return m[2] ? `\0${id}.terms` : id;
   },
 
   load(id) {
-    const m = /^\0?(.*\.grammar)(\.terms)?$/.exec(id);
+    const m = moduleIdPattern.exec(id);
     if (!m) return null;
     if (!m[2]) this.addWatchFile(id);
     const base = m[1];
